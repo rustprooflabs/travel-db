@@ -220,25 +220,30 @@ ASSERT _input_row_count > 0, 'No input data.  Ensure Trip including Trip Steps e
 
 
 
-DROP TABLE IF EXISTS dup_cleanup;
-CREATE TEMP TABLE dup_cleanup AS 
+DROP TABLE IF EXISTS dup_cleanup_ids;
+CREATE TEMP TABLE dup_cleanup_ids AS 
 WITH dup_ts AS (
 -- Identify timestamps with more than 1 value
 SELECT ts
     FROM trip_cleanup
     GROUP BY ts
     HAVING COUNT(*) > 1
-), dup_ids AS (
+)
 -- Find the IDs involved with the duplication
 SELECT dt.ts, tc.id
     FROM dup_ts dt
     INNER JOIN trip_cleanup tc ON dt.ts = tc.ts
-), diffs AS (
+;
+
+-- Attempt 1 to cleanup, taking out based on large time gaps
+DROP TABLE IF EXISTS dup_cleanup;
+CREATE TEMP TABLE dup_cleanup AS 
+WITH diffs AS (
 SELECT d.ts AS dup_ts, d.id AS dup_id, tc.id, tc.ts,
         d.ts - tc.ts AS ts_diff,
         d.id - tc.id AS id_diff,
         tc.geom
-    FROM dup_ids d
+    FROM dup_cleanup_ids d
     -- Compare against +/- 1 IDs (should be roughly +/- 1 seconds)
     INNER JOIN trip_cleanup tc
         ON d.id >= tc.id - 1
@@ -272,7 +277,34 @@ IF _ts_duplicates > 0 THEN
     DELETE FROM trip_cleanup t 
         WHERE t.id IN (SELECT id FROM dup_cleanup)
     ;
+
+    -- Remove records cleaned up in this step
+    DELETE FROM dup_cleanup_ids
+        WHERE id IN (SELECT id  FROM dup_cleanup)
+    ;
 END IF;
+
+
+
+DROP TABLE IF EXISTS dup_remove_ids;
+CREATE TEMP TABLE dup_remove_ids AS 
+WITH tie_breaker AS (
+SELECT ts, id,
+        RANK() OVER (PARTITION BY ts ORDER BY id DESC) AS rnk
+    FROM dup_cleanup_ids
+)
+SELECT *
+    FROM tie_breaker
+    WHERE rnk > 1
+;
+
+
+DELETE FROM trip_cleanup
+    WHERE id IN (SELECT id FROM dup_remove_ids)
+;
+
+-- End duplication cleanup
+
 
 
 WITH counts AS (
