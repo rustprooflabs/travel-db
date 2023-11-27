@@ -455,6 +455,41 @@ UPDATE trip_cleanup_2
         AND speed_m_s = 0.0
 ;
 
+-- Foot specific statuses
+UPDATE trip_cleanup_2
+    SET travel_mode_status = 'Meandering'
+    WHERE travel_mode_status IS NULL
+        AND travel_mode = 'foot'
+        AND speed_m_s > 0.0 AND speed_m_s < 0.45
+;
+UPDATE trip_cleanup_2
+    SET travel_mode_status = 'Walking'
+    WHERE travel_mode_status IS NULL
+        AND travel_mode = 'foot'
+        AND speed_m_s >= 0.45 AND speed_m_s < 1.34
+;
+UPDATE trip_cleanup_2
+    SET travel_mode_status = 'Speed Walking'
+    WHERE travel_mode_status IS NULL
+        AND travel_mode = 'foot'
+        AND speed_m_s >= 1.34 AND speed_m_s < 2.23
+;
+UPDATE trip_cleanup_2
+    SET travel_mode_status = 'Running'
+    WHERE travel_mode_status IS NULL
+        AND travel_mode = 'foot'
+        AND speed_m_s >= 2.23 AND speed_m_s < 12
+;
+UPDATE trip_cleanup_2
+    SET travel_mode_status = 'Usain Bolt (or misclassified travel mode!)'
+    WHERE travel_mode_status IS NULL
+        AND travel_mode = 'foot'
+        AND speed_m_s >= 12.0
+;
+
+-- Seems to work well enough for motor, air and lightrail
+-- as a starting point
+
 UPDATE trip_cleanup_2
     SET travel_mode_status = 'Stopped'
     WHERE travel_mode_status IS NULL
