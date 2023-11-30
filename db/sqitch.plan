@@ -3,3 +3,4 @@
 %uri=https://github.com/rustprooflabs/travel-db
 
 001 2023-11-25T18:06:59Z Ryan Lambert <ryan@rustprooflabs.com> # Initial schema
+002 [001] 2023-11-29T02:31:31Z Ryan Lambert <ryan@rustprooflabs.com> # Improve structures
