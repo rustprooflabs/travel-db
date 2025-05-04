@@ -17,8 +17,8 @@ is scoped to data from a [Bad Elf GNSS Surveyor](https://bad-elf.com/pages/be-gp
 The `travel.import_duplicate_cleanup` table is the beginning of tracking
 data quality issues in the data.
 
-> A blog post showing the use of this database is coming soon!
- 
+> The post [Working with GPS data in PostGIS](https://blog.rustprooflabs.com/2023/12/gps-gpx-postgis-processing) illustrates the use of this database.
+
 
 ## Deploy schema
 
